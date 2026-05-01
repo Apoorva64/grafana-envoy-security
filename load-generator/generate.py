@@ -11,6 +11,8 @@ import os
 import random
 import time
 import logging
+import threading
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from typing import Optional
 
@@ -27,8 +29,8 @@ log = logging.getLogger(__name__)
 
 # ── Configuration ──────────────────────────────────────────────────────────────
 TARGET_URL = os.getenv("TARGET_URL", "http://envoy:10000").rstrip("/")
-RPS = float(os.getenv("REQUESTS_PER_SECOND", "50"))
-SLEEP = 1.0 / RPS
+RPS = float(os.getenv("REQUESTS_PER_SECOND", "500"))
+WORKERS = int(os.getenv("WORKERS", "60"))
 
 
 # ── Traffic profiles ──────────────────────────────────────────────────────────
@@ -299,6 +301,92 @@ SIMULATED_IPS: list[str] = [
 # HTTP methods to sprinkle into the traffic mix
 EXTRA_METHODS = ["POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"]
 
+# ── Cardinality-test helpers ───────────────────────────────────────────────────
+
+_UA_PRODUCTS = [
+    "Mozilla/5.0", "curl", "python-requests", "axios", "okhttp", "Go-http-client",
+    "Java/HttpClient", "Dalvik", "libwww-perl", "wget", "HTTPie", "Scrapy",
+]
+_UA_OS = [
+    "(Windows NT 10.0; Win64; x64)", "(Macintosh; Intel Mac OS X 14_6)",
+    "(X11; Linux x86_64)", "(Android 14; Pixel 8)", "(iPhone; CPU iPhone OS 17_5)",
+    "(compatible; Bot/1.0)", "(Linux; arm64)", "(FreeBSD; amd64)",
+]
+_UA_ENGINES = [
+    "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/{v} Safari/537.36",
+    "Gecko/20100101 Firefox/{v}",
+    "AppleWebKit/605.1.15 (KHTML, like Gecko) Version/{v} Safari/605.1.15",
+    "rv:{v}",
+    "",
+]
+_UA_TOOLS = [
+    "scanner/{v}", "bot/{v}", "crawler/{v}", "probe/{v}", "monitor/{v}",
+    "agent/{v}", "fetcher/{v}", "spider/{v}",
+]
+
+
+def random_user_agent() -> str:
+    """Generate a highly varied synthetic User-Agent string."""
+    style = random.randint(0, 2)
+    ver = f"{random.randint(1, 130)}.{random.randint(0, 9)}"
+    if style == 0:
+        engine = random.choice(_UA_ENGINES).format(v=ver)
+        parts = [random.choice(_UA_PRODUCTS), random.choice(_UA_OS)]
+        if engine:
+            parts.append(engine)
+        return " ".join(parts)
+    elif style == 1:
+        tool = random.choice(_UA_TOOLS).format(v=ver)
+        vendor = "".join(random.choices("abcdefghijklmnopqrstuvwxyz", k=random.randint(4, 10)))
+        return f"{vendor}/{tool}"
+    else:
+        # Fully random identifier — extreme cardinality
+        name = "".join(random.choices("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_", k=random.randint(8, 32)))
+        return name
+
+
+_PATH_NOUNS = [
+    "user", "order", "product", "session", "token", "invoice", "report",
+    "event", "item", "record", "job", "task", "file", "blob", "asset",
+    "message", "notification", "subscription", "payment", "account",
+]
+_PATH_VERBS = [
+    "get", "list", "search", "create", "update", "delete", "export",
+    "import", "process", "sync", "validate", "archive", "restore",
+]
+_PATH_PREFIXES = ["/api/v1", "/api/v2", "/api/v3", "/internal", "/admin", "/public", ""]
+
+
+def random_path() -> str:
+    """Generate a random URL path — produces unbounded cardinality."""
+    style = random.randint(0, 3)
+    if style == 0:
+        # /api/v2/orders/<uuid>
+        noun = random.choice(_PATH_NOUNS) + "s"
+        uid = "%08x-%04x-%04x-%04x-%012x" % (
+            random.randint(0, 0xFFFFFFFF), random.randint(0, 0xFFFF),
+            random.randint(0, 0xFFFF), random.randint(0, 0xFFFF),
+            random.randint(0, 0xFFFFFFFFFFFF),
+        )
+        return f"{random.choice(_PATH_PREFIXES)}/{noun}/{uid}"
+    elif style == 1:
+        # /api/v1/users/12345/orders?page=3&limit=25
+        noun1 = random.choice(_PATH_NOUNS) + "s"
+        noun2 = random.choice(_PATH_NOUNS) + "s"
+        resource_id = random.randint(1, 10_000_000)
+        page = random.randint(1, 500)
+        limit = random.choice([10, 20, 25, 50, 100])
+        return f"{random.choice(_PATH_PREFIXES)}/{noun1}/{resource_id}/{noun2}?page={page}&limit={limit}"
+    elif style == 2:
+        # /admin/verb/noun  (random depth)
+        depth = random.randint(1, 4)
+        segments = [random.choice(_PATH_NOUNS + _PATH_VERBS) for _ in range(depth)]
+        return "/" + "/".join(segments)
+    else:
+        # Totally random slug — maximum cardinality
+        slug = "".join(random.choices("abcdefghijklmnopqrstuvwxyz0123456789-", k=random.randint(6, 24)))
+        return f"/{slug}"
+
 
 def build_request_pool() -> list[RequestSpec]:
     """Build a weighted list of request specs that mimic real-world + attack traffic."""
@@ -392,11 +480,49 @@ def build_request_pool() -> list[RequestSpec]:
             weight=2,
         ))
 
+    # ── High-cardinality traffic (random UAs + random paths) ─────────────────
+    # These entries regenerate their UA and path on *every* call to send_one()
+    # because send_one() copies the RequestSpec; the pool entries below act as
+    # sentinels — the path/UA are overwritten at dispatch time via the sentinel
+    # marker CARDINALITY_SENTINEL on the weight field.
+    #
+    # Random user-agent only (fixed known path) — stresses UA cardinality
+    for path in random.choices(NORMAL_PATHS + RECON_PATHS, k=15):
+        pool.append(RequestSpec(
+            method="GET",
+            path=path,
+            headers={"User-Agent": "__random_ua__",
+                     "X-Forwarded-For": random.choice(SIMULATED_IPS)},
+            weight=-1,  # sentinel: UA re-rolled per request
+        ))
+
+    # Random path only (known UA category) — stresses path cardinality
+    for _ in range(15):
+        pool.append(RequestSpec(
+            method=random.choice(["GET", "GET", "GET", "POST"]),
+            path="__random_path__",
+            headers={"User-Agent": random.choice(BROWSER_AGENTS + SCANNER_AGENTS),
+                     "X-Forwarded-For": random.choice(SIMULATED_IPS)},
+            weight=-2,  # sentinel: path re-rolled per request
+        ))
+
+    # Both random — maximum cardinality
+    for _ in range(10):
+        pool.append(RequestSpec(
+            method="GET",
+            path="__random_path__",
+            headers={"User-Agent": "__random_ua__",
+                     "X-Forwarded-For": random.choice(SIMULATED_IPS)},
+            weight=-3,  # sentinel: both re-rolled per request
+        ))
+
     return pool
 
 
 def weighted_choice(pool: list[RequestSpec]) -> RequestSpec:
-    weights = [r.weight for r in pool]
+    # Sentinel entries (weight < 0) are sampled with a fixed low probability
+    # regardless of their weight value — use abs value clamped to 2.
+    weights = [w if (w := r.weight) > 0 else 2 for r in pool]
     return random.choices(pool, weights=weights, k=1)[0]
 
 
@@ -407,6 +533,38 @@ def make_session() -> requests.Session:
     session.mount("http://", adapter)
     session.mount("https://", adapter)
     return session
+
+
+# One session per worker thread (sessions are not concurrency-safe)
+_thread_local = threading.local()
+
+
+def _get_session() -> requests.Session:
+    if not hasattr(_thread_local, "session"):
+        _thread_local.session = make_session()
+    return _thread_local.session
+
+
+def send_one(pool: list[RequestSpec]) -> None:
+    """Pick a random spec, copy its headers, and fire the request."""
+    spec = weighted_choice(pool)
+    # Copy headers so we don't mutate the shared pool entry
+    headers = dict(spec.headers)
+    headers["X-Forwarded-For"] = random.choice(SIMULATED_IPS)
+
+    # Resolve cardinality sentinels
+    path = random_path() if spec.path == "__random_path__" else spec.path
+    if headers.get("User-Agent") == "__random_ua__":
+        headers["User-Agent"] = random_user_agent()
+
+    req = RequestSpec(
+        method=spec.method,
+        path=path,
+        headers=headers,
+        body=spec.body,
+        weight=spec.weight,
+    )
+    send(_get_session(), req)
 
 
 def send(session: requests.Session, spec: RequestSpec) -> None:
@@ -445,23 +603,26 @@ def wait_for_envoy(session: requests.Session, max_wait: int = 120) -> None:
 
 
 def main() -> None:
-    log.info("Target: %s  |  Rate: %.1f req/s", TARGET_URL, RPS)
-    session = make_session()
-    wait_for_envoy(session)
+    log.info("Target: %s  |  Rate: %.1f req/s  |  Workers: %d", TARGET_URL, RPS, WORKERS)
+    init_session = make_session()
+    wait_for_envoy(init_session)
 
     pool = build_request_pool()
     log.info("Request pool built with %d unique specs", len(pool))
 
-    request_count = 0
-    while True:
-        spec = weighted_choice(pool)
-        # Randomise X-Forwarded-For per request to get more variety in the dashboard
-        spec.headers["X-Forwarded-For"] = random.choice(SIMULATED_IPS)
-        send(session, spec)
-        request_count += 1
-        if request_count % 100 == 0:
-            log.info("Sent %d requests so far", request_count)
-        time.sleep(SLEEP)
+    interval = 1.0 / RPS
+    dispatched = 0
+    with ThreadPoolExecutor(max_workers=WORKERS) as executor:
+        while True:
+            t0 = time.monotonic()
+            executor.submit(send_one, pool)
+            dispatched += 1
+            if dispatched % 500 == 0:
+                log.info("Dispatched %d requests so far", dispatched)
+            elapsed = time.monotonic() - t0
+            remaining = interval - elapsed
+            if remaining > 0:
+                time.sleep(remaining)
 
 
 if __name__ == "__main__":
