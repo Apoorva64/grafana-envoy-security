@@ -1,0 +1,166 @@
+services:
+
+  # ─── Backend ─────────────────────────────────────────────────────────────────
+  backend:
+    image: traefik/whoami:latest
+    container_name: backend
+    networks:
+      - otel-net
+
+  # ─── Slow Backend ───────────────────────────────────────────────────────────
+  # Used only by demo routes that intentionally exceed Envoy route timeouts.
+  slow-backend:
+    image: python:3.12-alpine
+    container_name: slow-backend
+    command:
+      - python
+      - -u
+      - -c
+      - |
+        from http.server import BaseHTTPRequestHandler, HTTPServer
+        import time
+
+        class Handler(BaseHTTPRequestHandler):
+            def do_GET(self):
+                time.sleep(2.5)
+                self.send_response(200)
+                self.end_headers()
+                self.wfile.write(b"slow backend response\n")
+            def log_message(self, fmt, *args):
+                pass
+
+        HTTPServer(("0.0.0.0", 8080), Handler).serve_forever()
+    networks:
+      - otel-net
+
+  # ─── Envoy log-dir init ──────────────────────────────────────────────────────
+  # The named volume is created owned by root; Envoy runs as uid 101 (envoy).
+  # This one-shot container chowns the directory before Envoy starts.
+  envoy-init:
+    image: busybox:1.36
+    container_name: envoy-init
+    volumes:
+      - envoy-logs:/var/log/envoy
+    command: ["sh", "-c", "chown -R 101:101 /var/log/envoy && chmod 755 /var/log/envoy"]
+    restart: "no"
+    networks:
+      - otel-net
+
+  # ─── Envoy Proxy ─────────────────────────────────────────────────────────────
+  # Writes JSON access logs to a shared volume; no gRPC side-car needed.
+  envoy:
+    image: envoyproxy/envoy:v1.32-latest
+    container_name: envoy
+    volumes:
+      - ./envoy/envoy.yaml:/etc/envoy/envoy.yaml:ro
+      - envoy-logs:/var/log/envoy
+    ports:
+      - "10000:10000"   # proxy listener
+      - "9901:9901"     # admin
+    depends_on:
+      envoy-init:
+        condition: service_completed_successfully
+      backend:
+        condition: service_started
+      slow-backend:
+        condition: service_started
+    networks:
+      - otel-net
+
+  # ─── GeoIP Database Downloader ───────────────────────────────────────────────
+  # Downloads the DB-IP City Lite MMDB (MaxMind-compatible, no license key needed)
+  # into a shared volume consumed by Alloy's stage.geoip.
+  geoip-downloader:
+    image: alpine:3.20
+    container_name: geoip-downloader
+    volumes:
+      - geoip-data:/geoip
+      - ./geoip-downloader/download.sh:/download.sh:ro
+    command: ["sh", "/download.sh"]
+    restart: "no"
+    networks:
+      - otel-net
+
+  # ─── Grafana Alloy ───────────────────────────────────────────────────────────
+  # Tails the Envoy JSON log file, parses fields, adds GeoIP, ships to VictoriaLogs.
+  alloy:
+    image: grafana/alloy:v1.8.0
+    container_name: alloy
+    volumes:
+      - ./alloy/config.alloy:/etc/alloy/config.alloy:ro
+      - envoy-logs:/var/log/envoy:ro
+      - geoip-data:/geoip:ro
+    command:
+      - run
+      - /etc/alloy/config.alloy
+      - --server.http.listen-addr=0.0.0.0:12345
+      - --storage.path=/var/lib/alloy/data
+    ports:
+      - "12345:12345"   # Alloy UI
+    depends_on:
+      geoip-downloader:
+        condition: service_completed_successfully
+      victoria-logs:
+        condition: service_started
+    networks:
+      - otel-net
+    restart: unless-stopped
+
+  # ─── VictoriaLogs ────────────────────────────────────────────────────────────
+  victoria-logs:
+    image: victoriametrics/victoria-logs:v1.50.0
+    container_name: victoria-logs
+    command:
+      - -storageDataPath=/victoria-logs-datadir
+      - -retentionPeriod=7d
+    ports:
+      - "9428:9428"
+    volumes:
+      - victoria-logs-data:/victoria-logs-datadir
+    networks:
+      - otel-net
+
+  # ─── Grafana ─────────────────────────────────────────────────────────────────
+  grafana:
+    image: grafana/grafana:11.6.1
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_INSTALL_PLUGINS=victoriametrics-logs-datasource
+      - GF_FEATURE_TOGGLES_ENABLE=lokiLive
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana-data:/var/lib/grafana
+    depends_on:
+      - victoria-logs
+    networks:
+      - otel-net
+
+  # ─── Load Generator ──────────────────────────────────────────────────────────
+  load-generator:
+    build: ./load-generator
+    container_name: load-generator
+    environment:
+      - TARGET_URL=http://envoy:10000
+      - REQUESTS_PER_SECOND=50
+    depends_on:
+      - envoy
+    networks:
+      - otel-net
+    restart: unless-stopped
+
+networks:
+  otel-net:
+    driver: bridge
+
+volumes:
+  victoria-logs-data:
+  grafana-data:
+  envoy-logs:
+  geoip-data:

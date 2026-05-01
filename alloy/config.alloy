@@ -1,0 +1,144 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// Grafana Alloy configuration
+//
+// Pipeline:
+//   Envoy JSON log file
+//     → loki.source.file (tail)
+//     → loki.process    (parse JSON · extract first XFF IP · GeoIP enrichment)
+//     → loki.write      (VictoriaLogs Loki-compatible push API)
+// ─────────────────────────────────────────────────────────────────────────────
+
+// ── 1. Discover the Envoy access log file ─────────────────────────────────────
+local.file_match "envoy_logs" {
+  path_targets = [{
+    "__path__" = "/var/log/envoy/access.log",
+    "job"      = "envoy-proxy",
+  }]
+  sync_period = "5s"
+}
+
+// ── 2. Tail the file and forward each line ────────────────────────────────────
+loki.source.file "envoy" {
+  targets               = local.file_match.envoy_logs.targets
+  forward_to            = [loki.process.enrich.receiver]
+  legacy_positions_file = "/var/lib/alloy/data/positions.yaml"
+}
+
+// ── 3. Parse · enrich · label ─────────────────────────────────────────────────
+loki.process "enrich" {
+
+  // ── 3a. Parse the JSON log line ─────────────────────────────────────────────
+  // Each top-level key (underscored) is placed into the extracted map.
+  stage.json {
+    expressions = {
+      http_request_method                 = "http_request_method",
+      http_response_status_code           = "http_response_status_code",
+      http_response_body_size             = "http_response_body_size",
+      http_request_body_size              = "http_request_body_size",
+      url_path                            = "url_path",
+      url_full                            = "url_full",
+      http_route                          = "http_route",
+      client_address                      = "client_address",
+      http_request_header_x_forwarded_for = "http_request_header_x_forwarded_for",
+      network_protocol_version            = "network_protocol_version",
+      user_agent_original                 = "user_agent_original",
+      http_request_header_host            = "http_request_header_host",
+      http_request_header_referer         = "http_request_header_referer",
+      server_address                      = "server_address",
+      envoy_duration_ms                   = "envoy_duration_ms",
+      envoy_upstream_service_time_ms      = "envoy_upstream_service_time_ms",
+      envoy_response_flags                = "envoy_response_flags",
+      envoy_upstream_cluster              = "envoy_upstream_cluster",
+      envoy_request_id                    = "envoy_request_id",
+      service_name                        = "service_name",
+      message                             = "message",
+    }
+  }
+
+  // ── 3b. Use the human-readable "message" field as the log line body ──────────
+  stage.template {
+    source   = "message"
+    template = "{{ .Value }}"
+  }
+
+  stage.output {
+    source = "message"
+  }
+
+  // ── 3c. Extract the first IPv4 from X-Forwarded-For ─────────────────────────
+  // The load generator injects simulated public IPs via this header.
+  // Using the first IP avoids multi-hop comma-separated values.
+  stage.regex {
+    expression = `^(?P<client_public_ip>[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3})`
+    source     = "http_request_header_x_forwarded_for"
+  }
+
+  // ── 3d. GeoIP enrichment ─────────────────────────────────────────────────────
+  // Reads client_public_ip and adds geoip_* fields to the extracted map.
+  // If the database is absent or the IP is private/unknown the stage is a no-op.
+  stage.geoip {
+    source  = "client_public_ip"
+    db      = "/geoip/city.mmdb"
+    db_type = "city"
+  }
+
+  // ── 3e. Promote all fields as Loki structured metadata ───────────────────────
+  // Label names must match [a-zA-Z_][a-zA-Z0-9_]* — dots are not valid.
+  // We use underscores throughout; the dashboard queries use the same names.
+  stage.structured_metadata {
+    values = {
+      // HTTP semantic conventions (OTel-inspired, underscore form)
+      http_request_method                 = "http_request_method",
+      http_response_status_code           = "http_response_status_code",
+      http_response_body_size             = "http_response_body_size",
+      http_request_body_size              = "http_request_body_size",
+      url_path                            = "url_path",
+      url_full                            = "url_full",
+      http_route                          = "http_route",
+      client_address                      = "client_address",
+      network_protocol_version            = "network_protocol_version",
+      user_agent_original                 = "user_agent_original",
+      http_request_header_host            = "http_request_header_host",
+      http_request_header_referer         = "http_request_header_referer",
+      http_request_header_x_forwarded_for = "http_request_header_x_forwarded_for",
+      server_address                      = "server_address",
+      // Envoy-specific
+      envoy_duration_ms                   = "envoy_duration_ms",
+      envoy_upstream_service_time_ms      = "envoy_upstream_service_time_ms",
+      envoy_response_flags                = "envoy_response_flags",
+      envoy_upstream_cluster              = "envoy_upstream_cluster",
+      envoy_request_id                    = "envoy_request_id",
+      // GeoIP (populated by stage.geoip; empty string when IP not found)
+      geoip_city                          = "geoip_city_name",
+      geoip_country                       = "geoip_country_name",
+      geoip_country_code                  = "geoip_country_iso_code",
+      geoip_continent                     = "geoip_continent_name",
+      geoip_subdivision                   = "geoip_subdivision_name",
+      geoip_latitude                      = "geoip_location_latitude",
+      geoip_longitude                     = "geoip_location_longitude",
+      geoip_timezone                      = "geoip_timezone",
+      geoip_asn                           = "geoip_autonomous_system_number",
+      geoip_asn_org                       = "geoip_autonomous_system_org",
+    }
+  }
+
+  // ── 3f. Low-cardinality stream labels (kept minimal to avoid explosion) ───────
+  stage.labels {
+    values = {
+      service_name = "service_name",
+    }
+  }
+
+  forward_to = [loki.write.victorialogs.receiver]
+}
+
+// ── 4. Ship to VictoriaLogs via its Loki-compatible push endpoint ─────────────
+loki.write "victorialogs" {
+  endpoint {
+    url              = "http://victoria-logs:9428/insert/loki/api/v1/push"
+    min_backoff_period  = "500ms"
+    max_backoff_period  = "5m"
+    max_backoff_retries = 10
+  }
+  external_labels = {}
+}

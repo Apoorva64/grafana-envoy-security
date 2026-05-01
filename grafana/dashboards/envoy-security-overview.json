@@ -1,0 +1,1749 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [
+    {
+      "asDropdown": false,
+      "icon": "external link",
+      "includeVars": false,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": true,
+      "title": "VictoriaLogs",
+      "tooltip": "Open VictoriaLogs UI",
+      "type": "link",
+      "url": "http://localhost:9428"
+    },
+    {
+      "asDropdown": false,
+      "icon": "external link",
+      "includeVars": false,
+      "keepTime": false,
+      "tags": [],
+      "targetBlank": true,
+      "title": "Envoy Admin",
+      "tooltip": "Open Envoy admin endpoint",
+      "type": "link",
+      "url": "http://localhost:9901"
+    }
+  ],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": {
+        "type": "victoriametrics-logs-datasource",
+        "uid": "victorialogs"
+      },
+      "description": "Total Envoy access log entries in the selected time range.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.6.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "victoriametrics-logs-datasource",
+            "uid": "victorialogs"
+          },
+          "editorMode": "code",
+          "expr": "{service_name=~\"${service_name:regex}\"} http_response_status_code:in($response_code) http_request_method:in($method) geoip_country:in($country) url_path:in($path) | stats count()",
+          "legendFormat": "Total requests",
+          "queryType": "stats",
+          "refId": "A"
+        }
+      ],
+      "title": "Total Requests",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "victoriametrics-logs-datasource",
+        "uid": "victorialogs"
+      },
+      "description": "Distinct user-agent values observed in the selected time range.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 50
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 5,
+        "x": 4,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.6.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "victoriametrics-logs-datasource",
+            "uid": "victorialogs"
+          },
+          "editorMode": "code",
+          "expr": "{service_name=~\"${service_name:regex}\"} http_response_status_code:in($response_code) http_request_method:in($method) geoip_country:in($country) url_path:in($path) | stats count_uniq(user_agent_original)",
+          "legendFormat": "unique user agents",
+          "queryType": "stats",
+          "refId": "A"
+        }
+      ],
+      "title": "Unique User Agents",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "victoriametrics-logs-datasource",
+        "uid": "victorialogs"
+      },
+      "description": "Client-error responses in the selected time range.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 25
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 5,
+        "x": 9,
+        "y": 0
+      },
+      "id": 3,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.6.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "victoriametrics-logs-datasource",
+            "uid": "victorialogs"
+          },
+          "editorMode": "code",
+          "expr": "{service_name=~\"${service_name:regex}\"} http_response_status_code:in($response_code) http_request_method:in($method) geoip_country:in($country) url_path:in($path) http_response_status_code:~\"4..\" | stats count()",
+          "legendFormat": "4xx responses",
+          "queryType": "stats",
+          "refId": "A"
+        }
+      ],
+      "title": "4xx Responses",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "victoriametrics-logs-datasource",
+        "uid": "victorialogs"
+      },
+      "description": "Server-error responses in the selected time range.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 10
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 5,
+        "x": 14,
+        "y": 0
+      },
+      "id": 4,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.6.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "victoriametrics-logs-datasource",
+            "uid": "victorialogs"
+          },
+          "editorMode": "code",
+          "expr": "{service_name=~\"${service_name:regex}\"} http_response_status_code:in($response_code) http_request_method:in($method) geoip_country:in($country) url_path:in($path) http_response_status_code:~\"5..\" | stats count()",
+          "legendFormat": "5xx responses",
+          "queryType": "stats",
+          "refId": "A"
+        }
+      ],
+      "title": "5xx Responses",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "victoriametrics-logs-datasource",
+        "uid": "victorialogs"
+      },
+      "description": "Envoy response flags other than '-' indicate notable proxy behavior such as local reset, upstream failure or timeout.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 10
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 5,
+        "x": 19,
+        "y": 0
+      },
+      "id": 5,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.6.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "victoriametrics-logs-datasource",
+            "uid": "victorialogs"
+          },
+          "editorMode": "code",
+          "expr": "{service_name=~\"${service_name:regex}\"} http_response_status_code:in($response_code) http_request_method:in($method) geoip_country:in($country) url_path:in($path) envoy_response_flags:!=\"-\" | stats count()",
+          "legendFormat": "Envoy flagged",
+          "queryType": "stats",
+          "refId": "A"
+        }
+      ],
+      "title": "Envoy Flagged Responses",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "victoriametrics-logs-datasource",
+        "uid": "victorialogs"
+      },
+      "description": "HTTP status code request rates over time.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "requests / second",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "bars",
+            "fillOpacity": 60,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 4,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "normal"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 16,
+        "x": 0,
+        "y": 4
+      },
+      "id": 7,
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "pluginVersion": "11.6.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "victoriametrics-logs-datasource",
+            "uid": "victorialogs"
+          },
+          "editorMode": "code",
+          "expr": "{service_name=~\"${service_name:regex}\"} http_response_status_code:in($response_code) http_request_method:in($method) geoip_country:in($country) url_path:in($path) | stats by (http_response_status_code) rate()",
+          "legendFormat": "{{http_response_status_code}}",
+          "queryType": "statsRange",
+          "refId": "A",
+          "step": "15s"
+        }
+      ],
+      "title": "Response Codes Over Time",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "victoriametrics-logs-datasource",
+        "uid": "victorialogs"
+      },
+      "description": "HTTP status code share in the selected time range.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 4
+      },
+      "id": 22,
+      "options": {
+        "displayLabels": [
+          "name",
+          "percent"
+        ],
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true,
+          "values": [
+            "value",
+            "percent"
+          ]
+        },
+        "pieType": "donut",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "11.6.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "victoriametrics-logs-datasource",
+            "uid": "victorialogs"
+          },
+          "editorMode": "code",
+          "expr": "{service_name=~\"${service_name:regex}\"} http_response_status_code:in($response_code) http_request_method:in($method) geoip_country:in($country) url_path:in($path) | stats by (http_response_status_code) count() as hits | sort by (hits desc)",
+          "legendFormat": "{{http_response_status_code}}",
+          "queryType": "stats",
+          "refId": "A"
+        }
+      ],
+      "title": "Response Codes",
+      "type": "piechart"
+    },
+    {
+      "datasource": {
+        "type": "victoriametrics-logs-datasource",
+        "uid": "victorialogs"
+      },
+      "description": "Top user agents in the selected time range, without assuming any predefined agent list.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "continuous-RdYlGr"
+          },
+          "displayName": "${__field.labels.user_agent_original}",
+          "links": [
+            {
+              "targetBlank": false,
+              "title": "Add user-agent ad hoc filter",
+              "url": "/d/envoy-security-overview/envoy-security-overview?${__url_time_range}&${__all_variables}&var-ad_hoc_filters=user_agent_original%7C%3D%7C${__field.labels.user_agent_original_filter:percentencode}"
+            }
+          ],
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 20
+      },
+      "id": 10,
+      "options": {
+        "displayMode": "gradient",
+        "maxVizHeight": 300,
+        "minVizHeight": 10,
+        "minVizWidth": 0,
+        "namePlacement": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showUnfilled": true,
+        "sizing": "auto",
+        "valueMode": "color"
+      },
+      "pluginVersion": "11.6.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "victoriametrics-logs-datasource",
+            "uid": "victorialogs"
+          },
+          "editorMode": "code",
+          "expr": "{service_name=~\"${service_name:regex}\"} http_response_status_code:in($response_code) http_request_method:in($method) geoip_country:in($country) url_path:in($path) | copy user_agent_original as user_agent_original_filter | replace (\",\", \"__gfc__\") at user_agent_original_filter | stats by (user_agent_original, user_agent_original_filter) count() as hits | sort by (hits desc) | limit 10",
+          "legendFormat": "{{user_agent_original}}",
+          "queryType": "stats",
+          "refId": "A"
+        }
+      ],
+      "title": "Top User Agents",
+      "type": "bargauge"
+    },
+    {
+      "datasource": {
+        "type": "victoriametrics-logs-datasource",
+        "uid": "victorialogs"
+      },
+      "description": "Top paths returning 4xx responses, ordered by hit count.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "continuous-RdYlGr"
+          },
+          "displayName": "${__field.labels.url_path}",
+          "links": [
+            {
+              "targetBlank": false,
+              "title": "Add path ad hoc filter",
+              "url": "/d/envoy-security-overview/envoy-security-overview?${__url_time_range}&${__all_variables}&var-ad_hoc_filters=url_path%7C%3D%7C${__field.labels.url_path_filter:percentencode}"
+            },
+            {
+              "targetBlank": false,
+              "title": "Set Path variable",
+              "url": "/d/envoy-security-overview/envoy-security-overview?${__url_time_range}&${__all_variables}&var-path=${__field.labels.url_path:percentencode}"
+            }
+          ],
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 20
+      },
+      "id": 11,
+      "options": {
+        "displayMode": "gradient",
+        "maxVizHeight": 300,
+        "minVizHeight": 10,
+        "minVizWidth": 0,
+        "namePlacement": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showUnfilled": true,
+        "sizing": "auto",
+        "valueMode": "color"
+      },
+      "pluginVersion": "11.6.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "victoriametrics-logs-datasource",
+            "uid": "victorialogs"
+          },
+          "editorMode": "code",
+          "expr": "{service_name=~\"${service_name:regex}\"} http_response_status_code:in($response_code) http_request_method:in($method) geoip_country:in($country) url_path:in($path) http_response_status_code:~\"4..\" | copy url_path as url_path_filter | replace (\",\", \"__gfc__\") at url_path_filter | stats by (url_path, url_path_filter) count() as hits | sort by (hits desc) | limit 10",
+          "legendFormat": "{{url_path}}",
+          "queryType": "stats",
+          "refId": "A"
+        }
+      ],
+      "title": "Top 4xx Paths",
+      "type": "bargauge"
+    },
+    {
+      "datasource": {
+        "type": "victoriametrics-logs-datasource",
+        "uid": "victorialogs"
+      },
+      "description": "Source countries from GeoIP enrichment. Useful for spotting unusual geography.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "displayName": "${__field.labels.geoip_country_display}",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 20
+      },
+      "id": 12,
+      "options": {
+        "displayLabels": [
+          "name",
+          "percent"
+        ],
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true,
+          "values": [
+            "value",
+            "percent"
+          ]
+        },
+        "pieType": "donut",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "11.6.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "victoriametrics-logs-datasource",
+            "uid": "victorialogs"
+          },
+          "editorMode": "code",
+          "expr": "{service_name=~\"${service_name:regex}\"} http_response_status_code:in($response_code) http_request_method:in($method) geoip_country:in($country) url_path:in($path) | copy geoip_country as geoip_country_display | format if (geoip_country:\"\") \"Unknown country\" as geoip_country_display | stats by (geoip_country, geoip_country_display) count()",
+          "legendFormat": "{{geoip_country_display}}",
+          "queryType": "stats",
+          "refId": "A"
+        }
+      ],
+      "title": "Traffic by Country",
+      "type": "piechart"
+    },
+    {
+      "datasource": {
+        "type": "victoriametrics-logs-datasource",
+        "uid": "victorialogs"
+      },
+      "description": "Top paths returning 5xx responses, ordered by hit count.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "continuous-RdYlGr"
+          },
+          "displayName": "${__field.labels.url_path}",
+          "links": [
+            {
+              "targetBlank": false,
+              "title": "Add path ad hoc filter",
+              "url": "/d/envoy-security-overview/envoy-security-overview?${__url_time_range}&${__all_variables}&var-ad_hoc_filters=url_path%7C%3D%7C${__field.labels.url_path_filter:percentencode}"
+            },
+            {
+              "targetBlank": false,
+              "title": "Set Path variable",
+              "url": "/d/envoy-security-overview/envoy-security-overview?${__url_time_range}&${__all_variables}&var-path=${__field.labels.url_path:percentencode}"
+            }
+          ],
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 8,
+        "x": 0,
+        "y": 28
+      },
+      "id": 13,
+      "options": {
+        "displayMode": "gradient",
+        "maxVizHeight": 300,
+        "minVizHeight": 10,
+        "minVizWidth": 0,
+        "namePlacement": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showUnfilled": true,
+        "sizing": "auto",
+        "valueMode": "color"
+      },
+      "pluginVersion": "11.6.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "victoriametrics-logs-datasource",
+            "uid": "victorialogs"
+          },
+          "editorMode": "code",
+          "expr": "{service_name=~\"${service_name:regex}\"} http_response_status_code:in($response_code) http_request_method:in($method) geoip_country:in($country) url_path:in($path) http_response_status_code:~\"5..\" | copy url_path as url_path_filter | replace (\",\", \"__gfc__\") at url_path_filter | stats by (url_path, url_path_filter) count() as hits | sort by (hits desc) | limit 10",
+          "legendFormat": "{{url_path}}",
+          "queryType": "stats",
+          "refId": "A"
+        }
+      ],
+      "title": "Top 5xx Paths",
+      "type": "bargauge"
+    },
+    {
+      "datasource": {
+        "type": "victoriametrics-logs-datasource",
+        "uid": "victorialogs"
+      },
+      "description": "Average and p95 Envoy request duration over time.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 15,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 4,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 16,
+        "x": 8,
+        "y": 28
+      },
+      "id": 14,
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "pluginVersion": "11.6.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "victoriametrics-logs-datasource",
+            "uid": "victorialogs"
+          },
+          "editorMode": "code",
+          "expr": "{service_name=~\"${service_name:regex}\"} http_response_status_code:in($response_code) http_request_method:in($method) geoip_country:in($country) url_path:in($path) | stats quantile(0.99, envoy_duration_ms)",
+          "legendFormat": "p99",
+          "queryType": "statsRange",
+          "refId": "A",
+          "step": "15s"
+        },
+        {
+          "datasource": {
+            "type": "victoriametrics-logs-datasource",
+            "uid": "victorialogs"
+          },
+          "editorMode": "code",
+          "expr": "{service_name=~\"${service_name:regex}\"} http_response_status_code:in($response_code) http_request_method:in($method) geoip_country:in($country) url_path:in($path) | stats quantile(0.95, envoy_duration_ms)",
+          "legendFormat": "p95",
+          "queryType": "statsRange",
+          "refId": "B",
+          "step": "15s"
+        },
+        {
+          "datasource": {
+            "type": "victoriametrics-logs-datasource",
+            "uid": "victorialogs"
+          },
+          "editorMode": "code",
+          "expr": "{service_name=~\"${service_name:regex}\"} http_response_status_code:in($response_code) http_request_method:in($method) geoip_country:in($country) url_path:in($path) | stats quantile(0.70, envoy_duration_ms)",
+          "legendFormat": "p70",
+          "queryType": "statsRange",
+          "refId": "C",
+          "step": "15s"
+        },
+        {
+          "datasource": {
+            "type": "victoriametrics-logs-datasource",
+            "uid": "victorialogs"
+          },
+          "editorMode": "code",
+          "expr": "{service_name=~\"${service_name:regex}\"} http_response_status_code:in($response_code) http_request_method:in($method) geoip_country:in($country) url_path:in($path) | stats quantile(0.50, envoy_duration_ms)",
+          "legendFormat": "P50",
+          "queryType": "statsRange",
+          "refId": "D",
+          "step": "15s"
+        }
+      ],
+      "title": "Envoy Duration",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "victoriametrics-logs-datasource",
+        "uid": "victorialogs"
+      },
+      "description": "Top X-Forwarded-For values by request count. These represent the simulated source addresses before the Docker bridge hop.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "continuous-RdYlGr"
+          },
+          "displayName": "${__field.labels.http_request_header_x_forwarded_for}",
+          "links": [
+            {
+              "targetBlank": false,
+              "title": "Add source IP ad hoc filter",
+              "url": "/d/envoy-security-overview/envoy-security-overview?${__url_time_range}&${__all_variables}&var-ad_hoc_filters=http_request_header_x_forwarded_for%7C%3D%7C${__field.labels.http_request_header_x_forwarded_for_filter:percentencode}"
+            }
+          ],
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 8,
+        "x": 0,
+        "y": 35
+      },
+      "id": 16,
+      "options": {
+        "displayMode": "gradient",
+        "maxVizHeight": 300,
+        "minVizHeight": 10,
+        "minVizWidth": 0,
+        "namePlacement": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showUnfilled": true,
+        "sizing": "auto",
+        "valueMode": "color"
+      },
+      "pluginVersion": "11.6.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "victoriametrics-logs-datasource",
+            "uid": "victorialogs"
+          },
+          "editorMode": "code",
+          "expr": "{service_name=~\"${service_name:regex}\"} http_response_status_code:in($response_code) http_request_method:in($method) geoip_country:in($country) url_path:in($path) | copy http_request_header_x_forwarded_for as http_request_header_x_forwarded_for_filter | replace (\",\", \"__gfc__\") at http_request_header_x_forwarded_for_filter | stats by (http_request_header_x_forwarded_for, http_request_header_x_forwarded_for_filter) count() as hits | sort by (hits desc) | limit 10",
+          "legendFormat": "{{http_request_header_x_forwarded_for}}",
+          "queryType": "stats",
+          "refId": "A"
+        }
+      ],
+      "title": "Top Source IPs",
+      "type": "bargauge"
+    },
+    {
+      "datasource": {
+        "type": "victoriametrics-logs-datasource",
+        "uid": "victorialogs"
+      },
+      "description": "Most requested paths across all traffic, ordered by request count.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "continuous-RdYlGr"
+          },
+          "displayName": "${__field.labels.url_path}",
+          "links": [
+            {
+              "targetBlank": false,
+              "title": "Add path ad hoc filter",
+              "url": "/d/envoy-security-overview/envoy-security-overview?${__url_time_range}&${__all_variables}&var-ad_hoc_filters=url_path%7C%3D%7C${__field.labels.url_path_filter:percentencode}"
+            },
+            {
+              "targetBlank": false,
+              "title": "Set Path variable",
+              "url": "/d/envoy-security-overview/envoy-security-overview?${__url_time_range}&${__all_variables}&var-path=${__field.labels.url_path:percentencode}"
+            }
+          ],
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 8,
+        "x": 8,
+        "y": 35
+      },
+      "id": 17,
+      "options": {
+        "displayMode": "gradient",
+        "maxVizHeight": 300,
+        "minVizHeight": 10,
+        "minVizWidth": 0,
+        "namePlacement": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showUnfilled": true,
+        "sizing": "auto",
+        "valueMode": "color"
+      },
+      "pluginVersion": "11.6.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "victoriametrics-logs-datasource",
+            "uid": "victorialogs"
+          },
+          "editorMode": "code",
+          "expr": "{service_name=~\"${service_name:regex}\"} http_response_status_code:in($response_code) http_request_method:in($method) geoip_country:in($country) url_path:in($path) | copy url_path as url_path_filter | replace (\",\", \"__gfc__\") at url_path_filter | stats by (url_path, url_path_filter) count() as hits | sort by (hits desc) | limit 10",
+          "legendFormat": "{{url_path}}",
+          "queryType": "stats",
+          "refId": "A"
+        }
+      ],
+      "title": "Top Requested Paths",
+      "type": "bargauge"
+    },
+    {
+      "datasource": {
+        "type": "victoriametrics-logs-datasource",
+        "uid": "victorialogs"
+      },
+      "description": "Countries responsible for 4xx client-error traffic.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "continuous-RdYlGr"
+          },
+          "displayName": "${__field.labels.geoip_country_display}",
+          "links": [
+            {
+              "targetBlank": false,
+              "title": "Add country ad hoc filter",
+              "url": "/d/envoy-security-overview/envoy-security-overview?${__url_time_range}&${__all_variables}&var-ad_hoc_filters=geoip_country%7C%3D%7C${__field.labels.geoip_country_filter:percentencode}"
+            },
+            {
+              "targetBlank": false,
+              "title": "Set Country variable",
+              "url": "/d/envoy-security-overview/envoy-security-overview?${__url_time_range}&${__all_variables}&var-country=${__field.labels.geoip_country:percentencode}"
+            }
+          ],
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 8,
+        "x": 16,
+        "y": 35
+      },
+      "id": 18,
+      "options": {
+        "displayMode": "gradient",
+        "maxVizHeight": 300,
+        "minVizHeight": 10,
+        "minVizWidth": 0,
+        "namePlacement": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showUnfilled": true,
+        "sizing": "auto",
+        "valueMode": "color"
+      },
+      "pluginVersion": "11.6.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "victoriametrics-logs-datasource",
+            "uid": "victorialogs"
+          },
+          "editorMode": "code",
+          "expr": "{service_name=~\"${service_name:regex}\"} http_response_status_code:in($response_code) http_request_method:in($method) geoip_country:in($country) url_path:in($path) http_response_status_code:~\"4..\" | copy geoip_country as geoip_country_filter | replace (\",\", \"__gfc__\") at geoip_country_filter | copy geoip_country as geoip_country_display | format if (geoip_country:\"\") \"Unknown country\" as geoip_country_display | stats by (geoip_country, geoip_country_filter, geoip_country_display) count() as hits | sort by (hits desc) | limit 10",
+          "legendFormat": "{{geoip_country_display}}",
+          "queryType": "stats",
+          "refId": "A"
+        }
+      ],
+      "title": "4xx Traffic by Country",
+      "type": "bargauge"
+    },
+    {
+      "datasource": {
+        "type": "victoriametrics-logs-datasource",
+        "uid": "victorialogs"
+      },
+      "description": "All HTTP methods in the selected time range.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 12
+      },
+      "id": 19,
+      "options": {
+        "displayLabels": [
+          "name",
+          "value"
+        ],
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true,
+          "values": [
+            "value",
+            "percent"
+          ]
+        },
+        "pieType": "donut",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "11.6.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "victoriametrics-logs-datasource",
+            "uid": "victorialogs"
+          },
+          "editorMode": "code",
+          "expr": "{service_name=~\"${service_name:regex}\"} http_response_status_code:in($response_code) http_request_method:in($method) geoip_country:in($country) url_path:in($path) | stats by (http_request_method) count() as hits | sort by (hits desc)",
+          "legendFormat": "{{http_request_method}}",
+          "queryType": "stats",
+          "refId": "A"
+        }
+      ],
+      "title": "HTTP Methods",
+      "type": "piechart"
+    },
+    {
+      "datasource": {
+        "type": "victoriametrics-logs-datasource",
+        "uid": "victorialogs"
+      },
+      "description": "Envoy response flags breakdown with human-readable meanings. Examples: UT = upstream request timeout, UF = upstream connection failure, UH = no healthy upstream, NR = no route.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "displayName": "${__field.labels.envoy_response_flags_text}",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 12
+      },
+      "id": 20,
+      "options": {
+        "displayLabels": [
+          "name",
+          "value"
+        ],
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true,
+          "values": [
+            "value",
+            "percent"
+          ]
+        },
+        "pieType": "donut",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "11.6.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "victoriametrics-logs-datasource",
+            "uid": "victorialogs"
+          },
+          "editorMode": "code",
+          "expr": "{service_name=~\"${service_name:regex}\"} http_response_status_code:in($response_code) http_request_method:in($method) geoip_country:in($country) url_path:in($path) | copy envoy_response_flags as envoy_response_flags_text | replace (\"-\", \"No Envoy response flag\") at envoy_response_flags_text | replace (\"UMSDR\", \"UMSDR - Upstream max stream duration reached\") at envoy_response_flags_text | replace (\"RLSE\", \"RLSE - Rate limit service error\") at envoy_response_flags_text | replace (\"DPE\", \"DPE - Downstream protocol error\") at envoy_response_flags_text | replace (\"UPE\", \"UPE - Upstream protocol error\") at envoy_response_flags_text | replace (\"UT\", \"UT - Upstream request timeout\") at envoy_response_flags_text | replace (\"UF\", \"UF - Upstream connection failure\") at envoy_response_flags_text | replace (\"UH\", \"UH - No healthy upstream hosts\") at envoy_response_flags_text | replace (\"UC\", \"UC - Upstream connection termination\") at envoy_response_flags_text | replace (\"UR\", \"UR - Upstream remote reset\") at envoy_response_flags_text | replace (\"UO\", \"UO - Upstream overflow\") at envoy_response_flags_text | replace (\"NR\", \"NR - No route configured\") at envoy_response_flags_text | replace (\"LR\", \"LR - Local reset\") at envoy_response_flags_text | replace (\"DC\", \"DC - Downstream connection termination\") at envoy_response_flags_text | replace (\"LH\", \"LH - Local service failed health check\") at envoy_response_flags_text | replace (\"DI\", \"DI - Delay-injected fault\") at envoy_response_flags_text | replace (\"FI\", \"FI - Fault-injected response\") at envoy_response_flags_text | replace (\"RL\", \"RL - Rate limited\") at envoy_response_flags_text | replace (\"UA\", \"UA - External authorization denied\") at envoy_response_flags_text | replace (\"IH\", \"IH - Invalid request headers\") at envoy_response_flags_text | replace (\"SI\", \"SI - Stream idle timeout\") at envoy_response_flags_text | stats by (envoy_response_flags_text) count() as hits | sort by (hits desc)",
+          "legendFormat": "{{envoy_response_flags_text}}",
+          "queryType": "stats",
+          "refId": "A"
+        }
+      ],
+      "title": "Envoy Response Flags",
+      "type": "piechart"
+    },
+    {
+      "datasource": {
+        "type": "victoriametrics-logs-datasource",
+        "uid": "victorialogs"
+      },
+      "description": "Upstream cluster distribution for routed requests.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "displayName": "${__field.labels.envoy_upstream_cluster_display}",
+          "links": [
+            {
+              "targetBlank": false,
+              "title": "Add upstream ad hoc filter",
+              "url": "/d/envoy-security-overview/envoy-security-overview?${__url_time_range}&${__all_variables}&var-ad_hoc_filters=envoy_upstream_cluster%7C%3D%7C${__field.labels.envoy_upstream_cluster_filter:percentencode}"
+            }
+          ],
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 12
+      },
+      "id": 21,
+      "options": {
+        "displayLabels": [
+          "name",
+          "value"
+        ],
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true,
+          "values": [
+            "value",
+            "percent"
+          ]
+        },
+        "pieType": "donut",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "11.6.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "victoriametrics-logs-datasource",
+            "uid": "victorialogs"
+          },
+          "editorMode": "code",
+          "expr": "{service_name=~\"${service_name:regex}\"} http_response_status_code:in($response_code) http_request_method:in($method) geoip_country:in($country) url_path:in($path) | copy envoy_upstream_cluster as envoy_upstream_cluster_filter | replace (\",\", \"__gfc__\") at envoy_upstream_cluster_filter | copy envoy_upstream_cluster as envoy_upstream_cluster_display | format if (envoy_upstream_cluster:\"\") \"No upstream / direct response\" as envoy_upstream_cluster_display | stats by (envoy_upstream_cluster, envoy_upstream_cluster_filter, envoy_upstream_cluster_display) count() as hits | sort by (hits desc)",
+          "legendFormat": "{{envoy_upstream_cluster_display}}",
+          "queryType": "stats",
+          "refId": "A"
+        }
+      ],
+      "title": "Upstream Clusters",
+      "type": "piechart"
+    },
+    {
+      "datasource": {
+        "type": "victoriametrics-logs-datasource",
+        "uid": "victorialogs"
+      },
+      "description": "Most recent access log events matching non-2xx responses or Envoy response flags.",
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 20,
+        "w": 24,
+        "x": 0,
+        "y": 42
+      },
+      "id": 15,
+      "options": {
+        "dedupStrategy": "none",
+        "enableLogDetails": true,
+        "prettifyLogMessage": false,
+        "showCommonLabels": false,
+        "showLabels": false,
+        "showTime": true,
+        "sortOrder": "Descending",
+        "wrapLogMessage": false
+      },
+      "pluginVersion": "11.6.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "victoriametrics-logs-datasource",
+            "uid": "victorialogs"
+          },
+          "editorMode": "code",
+          "expr": "{service_name=~\"${service_name:regex}\"} http_response_status_code:in($response_code) http_request_method:in($method) geoip_country:in($country) url_path:in($path) (http_response_status_code:~\"[45]..\" OR envoy_response_flags:!=\"-\") | copy envoy_response_flags as envoy_response_flags_text | replace (\"-\", \"No Envoy response flag\") at envoy_response_flags_text | replace (\"UMSDR\", \"UMSDR - Upstream max stream duration reached\") at envoy_response_flags_text | replace (\"RLSE\", \"RLSE - Rate limit service error\") at envoy_response_flags_text | replace (\"DPE\", \"DPE - Downstream protocol error\") at envoy_response_flags_text | replace (\"UPE\", \"UPE - Upstream protocol error\") at envoy_response_flags_text | replace (\"UT\", \"UT - Upstream request timeout\") at envoy_response_flags_text | replace (\"UF\", \"UF - Upstream connection failure\") at envoy_response_flags_text | replace (\"UH\", \"UH - No healthy upstream hosts\") at envoy_response_flags_text | replace (\"UC\", \"UC - Upstream connection termination\") at envoy_response_flags_text | replace (\"UR\", \"UR - Upstream remote reset\") at envoy_response_flags_text | replace (\"UO\", \"UO - Upstream overflow\") at envoy_response_flags_text | replace (\"NR\", \"NR - No route configured\") at envoy_response_flags_text | replace (\"LR\", \"LR - Local reset\") at envoy_response_flags_text | replace (\"DC\", \"DC - Downstream connection termination\") at envoy_response_flags_text | replace (\"LH\", \"LH - Local service failed health check\") at envoy_response_flags_text | replace (\"DI\", \"DI - Delay-injected fault\") at envoy_response_flags_text | replace (\"FI\", \"FI - Fault-injected response\") at envoy_response_flags_text | replace (\"RL\", \"RL - Rate limited\") at envoy_response_flags_text | replace (\"UA\", \"UA - External authorization denied\") at envoy_response_flags_text | replace (\"IH\", \"IH - Invalid request headers\") at envoy_response_flags_text | replace (\"SI\", \"SI - Stream idle timeout\") at envoy_response_flags_text",
+          "maxLines": 200,
+          "queryType": "instant",
+          "refId": "A"
+        }
+      ],
+      "title": "Recent Non-2xx / Flagged Logs",
+      "type": "logs"
+    }
+  ],
+  "refresh": "10s",
+  "schemaVersion": 41,
+  "tags": [
+    "envoy",
+    "security",
+    "victorialogs"
+  ],
+  "templating": {
+    "list": [
+      {
+        "datasource": {
+          "type": "victoriametrics-logs-datasource",
+          "uid": "victorialogs"
+        },
+        "filters": [],
+        "hide": 0,
+        "label": "Ad hoc filters",
+        "name": "ad_hoc_filters",
+        "skipUrlSync": false,
+        "type": "adhoc"
+      },
+      {
+        "allValue": ".*",
+        "current": {
+          "selected": false,
+          "text": "envoy-proxy",
+          "value": "envoy-proxy"
+        },
+        "datasource": {
+          "type": "victoriametrics-logs-datasource",
+          "uid": "victorialogs"
+        },
+        "definition": "service_name values",
+        "hide": 0,
+        "includeAll": true,
+        "label": "Service",
+        "multi": true,
+        "name": "service_name",
+        "options": [],
+        "query": {
+          "field": "service_name",
+          "limit": 1000,
+          "query": "{service_name=~\".*\"}",
+          "refId": "VictoriaLogsVariableQuery",
+          "type": "fieldValue"
+        },
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "allValue": "*",
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
+        },
+        "datasource": {
+          "type": "victoriametrics-logs-datasource",
+          "uid": "victorialogs"
+        },
+        "definition": "http_response_status_code values",
+        "hide": 0,
+        "includeAll": true,
+        "label": "Response code",
+        "multi": true,
+        "name": "response_code",
+        "options": [],
+        "query": {
+          "field": "http_response_status_code",
+          "limit": 1000,
+          "query": "{service_name=~\"${service_name:regex}\"}",
+          "refId": "VictoriaLogsVariableQuery",
+          "type": "fieldValue"
+        },
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "allValue": "*",
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
+        },
+        "datasource": {
+          "type": "victoriametrics-logs-datasource",
+          "uid": "victorialogs"
+        },
+        "definition": "http_request_method values",
+        "hide": 0,
+        "includeAll": true,
+        "label": "Method",
+        "multi": true,
+        "name": "method",
+        "options": [],
+        "query": {
+          "field": "http_request_method",
+          "limit": 1000,
+          "query": "{service_name=~\"${service_name:regex}\"}",
+          "refId": "VictoriaLogsVariableQuery",
+          "type": "fieldValue"
+        },
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "allValue": "*",
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
+        },
+        "datasource": {
+          "type": "victoriametrics-logs-datasource",
+          "uid": "victorialogs"
+        },
+        "definition": "geoip_country values",
+        "hide": 0,
+        "includeAll": true,
+        "label": "Country",
+        "multi": true,
+        "name": "country",
+        "options": [],
+        "query": {
+          "field": "geoip_country",
+          "limit": 1000,
+          "query": "{service_name=~\"${service_name:regex}\"}",
+          "refId": "VictoriaLogsVariableQuery",
+          "type": "fieldValue"
+        },
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "allValue": "*",
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
+        },
+        "datasource": {
+          "type": "victoriametrics-logs-datasource",
+          "uid": "victorialogs"
+        },
+        "definition": "url_path values",
+        "hide": 0,
+        "includeAll": true,
+        "label": "Path",
+        "multi": true,
+        "name": "path",
+        "options": [],
+        "query": {
+          "field": "url_path",
+          "limit": 1000,
+          "query": "{service_name=~\"${service_name:regex}\"}",
+          "refId": "VictoriaLogsVariableQuery",
+          "type": "fieldValue"
+        },
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 1,
+        "type": "query"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-30m",
+    "to": "now"
+  },
+  "timepicker": {
+    "refresh_intervals": [
+      "5s",
+      "10s",
+      "30s",
+      "1m",
+      "5m",
+      "15m"
+    ]
+  },
+  "timezone": "browser",
+  "title": "Envoy Security Overview",
+  "uid": "envoy-security-overview",
+  "version": 1,
+  "weekStart": ""
+}
