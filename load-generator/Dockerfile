@@ -1,10 +1,5 @@
-FROM python:3.12-slim
+FROM grafana/k6:latest
 
-WORKDIR /app
+COPY generate.js /scripts/generate.js
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-COPY generate.py .
-
-CMD ["python", "-u", "generate.py"]
+ENTRYPOINT ["k6", "run", "/scripts/generate.js"]

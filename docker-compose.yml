@@ -149,6 +149,7 @@ services:
     environment:
       - TARGET_URL=http://envoy:10000
       - REQUESTS_PER_SECOND=500
+      - VUS=100
     depends_on:
       - envoy
     networks:
