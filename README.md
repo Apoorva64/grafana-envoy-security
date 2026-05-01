@@ -233,6 +233,10 @@ Traffic profiles include:
 
 ## Grafana dashboard
 
+**Live snapshot:** [https://snapshots.raintank.io/dashboard/snapshot/enbuosXHg1k5dhAQBqbNFzYurl9hR2zU](https://snapshots.raintank.io/dashboard/snapshot/enbuosXHg1k5dhAQBqbNFzYurl9hR2zU)
+
+![Dashboard screenshot](./dashboard.png)
+
 The dashboard is provisioned from:
 
 ```text
