@@ -649,7 +649,7 @@
             "uid": "victorialogs"
           },
           "editorMode": "code",
-          "expr": "{service_name=~\"${service_name:regex}\"} http_response_status_code:in($response_code) http_request_method:in($method) geoip_country:in($country) url_path:in($path) | copy user_agent_original as user_agent_original_filter | replace (\",\", \"__gfc__\") at user_agent_original_filter | stats by (user_agent_original, user_agent_original_filter) count() as hits | sort by (hits desc) | limit 10",
+          "expr": "{service_name=~\"${service_name:regex}\"} http_response_status_code:in($response_code) http_request_method:in($method) geoip_country:in($country) url_path:in($path) | copy user_agent_original as user_agent_original_filter | replace (\",\", \"__gfc__\") at user_agent_original_filter | stats by (user_agent_original, user_agent_original_filter) count() as hits | sort by (hits desc) | limit 30",
           "legendFormat": "{{user_agent_original}}",
           "queryType": "stats",
           "refId": "A"
@@ -729,7 +729,7 @@
             "uid": "victorialogs"
           },
           "editorMode": "code",
-          "expr": "{service_name=~\"${service_name:regex}\"} http_response_status_code:in($response_code) http_request_method:in($method) geoip_country:in($country) url_path:in($path) http_response_status_code:~\"4..\" | copy url_path as url_path_filter | replace (\",\", \"__gfc__\") at url_path_filter | stats by (url_path, url_path_filter) count() as hits | sort by (hits desc) | limit 10",
+          "expr": "{service_name=~\"${service_name:regex}\"} http_response_status_code:in($response_code) http_request_method:in($method) geoip_country:in($country) url_path:in($path) http_response_status_code:~\"4..\" | copy url_path as url_path_filter | replace (\",\", \"__gfc__\") at url_path_filter | stats by (url_path, url_path_filter) count() as hits | sort by (hits desc) | limit 30",
           "legendFormat": "{{url_path}}",
           "queryType": "stats",
           "refId": "A"
@@ -887,7 +887,7 @@
             "uid": "victorialogs"
           },
           "editorMode": "code",
-          "expr": "{service_name=~\"${service_name:regex}\"} http_response_status_code:in($response_code) http_request_method:in($method) geoip_country:in($country) url_path:in($path) http_response_status_code:~\"5..\" | copy url_path as url_path_filter | replace (\",\", \"__gfc__\") at url_path_filter | stats by (url_path, url_path_filter) count() as hits | sort by (hits desc) | limit 10",
+          "expr": "{service_name=~\"${service_name:regex}\"} http_response_status_code:in($response_code) http_request_method:in($method) geoip_country:in($country) url_path:in($path) http_response_status_code:~\"5..\" | copy url_path as url_path_filter | replace (\",\", \"__gfc__\") at url_path_filter | stats by (url_path, url_path_filter) count() as hits | sort by (hits desc) | limit 30",
           "legendFormat": "{{url_path}}",
           "queryType": "stats",
           "refId": "A"
@@ -1095,7 +1095,7 @@
             "uid": "victorialogs"
           },
           "editorMode": "code",
-          "expr": "{service_name=~\"${service_name:regex}\"} http_response_status_code:in($response_code) http_request_method:in($method) geoip_country:in($country) url_path:in($path) | copy http_request_header_x_forwarded_for as http_request_header_x_forwarded_for_filter | replace (\",\", \"__gfc__\") at http_request_header_x_forwarded_for_filter | stats by (http_request_header_x_forwarded_for, http_request_header_x_forwarded_for_filter) count() as hits | sort by (hits desc) | limit 10",
+          "expr": "{service_name=~\"${service_name:regex}\"} http_response_status_code:in($response_code) http_request_method:in($method) geoip_country:in($country) url_path:in($path) | copy http_request_header_x_forwarded_for as http_request_header_x_forwarded_for_filter | replace (\",\", \"__gfc__\") at http_request_header_x_forwarded_for_filter | stats by (http_request_header_x_forwarded_for, http_request_header_x_forwarded_for_filter) count() as hits | sort by (hits desc) | limit 30",
           "legendFormat": "{{http_request_header_x_forwarded_for}}",
           "queryType": "stats",
           "refId": "A"
@@ -1175,7 +1175,7 @@
             "uid": "victorialogs"
           },
           "editorMode": "code",
-          "expr": "{service_name=~\"${service_name:regex}\"} http_response_status_code:in($response_code) http_request_method:in($method) geoip_country:in($country) url_path:in($path) | copy url_path as url_path_filter | replace (\",\", \"__gfc__\") at url_path_filter | stats by (url_path, url_path_filter) count() as hits | sort by (hits desc) | limit 10",
+          "expr": "{service_name=~\"${service_name:regex}\"} http_response_status_code:in($response_code) http_request_method:in($method) geoip_country:in($country) url_path:in($path) | copy url_path as url_path_filter | replace (\",\", \"__gfc__\") at url_path_filter | stats by (url_path, url_path_filter) count() as hits | sort by (hits desc) | limit 30",
           "legendFormat": "{{url_path}}",
           "queryType": "stats",
           "refId": "A"
@@ -1255,7 +1255,7 @@
             "uid": "victorialogs"
           },
           "editorMode": "code",
-          "expr": "{service_name=~\"${service_name:regex}\"} http_response_status_code:in($response_code) http_request_method:in($method) geoip_country:in($country) url_path:in($path) http_response_status_code:~\"4..\" | copy geoip_country as geoip_country_filter | replace (\",\", \"__gfc__\") at geoip_country_filter | copy geoip_country as geoip_country_display | format if (geoip_country:\"\") \"Unknown country\" as geoip_country_display | stats by (geoip_country, geoip_country_filter, geoip_country_display) count() as hits | sort by (hits desc) | limit 10",
+          "expr": "{service_name=~\"${service_name:regex}\"} http_response_status_code:in($response_code) http_request_method:in($method) geoip_country:in($country) url_path:in($path) http_response_status_code:~\"4..\" | copy geoip_country as geoip_country_filter | replace (\",\", \"__gfc__\") at geoip_country_filter | copy geoip_country as geoip_country_display | format if (geoip_country:\"\") \"Unknown country\" as geoip_country_display | stats by (geoip_country, geoip_country_filter, geoip_country_display) count() as hits | sort by (hits desc) | limit 30",
           "legendFormat": "{{geoip_country_display}}",
           "queryType": "stats",
           "refId": "A"
